@@ -4,9 +4,9 @@ version = "0.0.2"
 edition = "2021"
 
 authors = ["Dario Caruso"]
-description = "host networks manager"
+description = "host networks manager lib"
 license = "Apache-2.0"
-documentation = "https://docs.rs/simple-host-networks-manager-lib"
+documentation = "https://docs.rs/simple_host_networks_manager_lib"
 repository = "https://github.com/dottgonzo/simple-host-networks-manager"
 
 

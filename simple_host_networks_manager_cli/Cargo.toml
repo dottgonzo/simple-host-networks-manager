@@ -3,6 +3,12 @@ name = "simple_host_networks_manager_cli"
 version = "0.0.0"
 edition = "2021"
 
+authors = ["Dario Caruso"]
+description = "host networks manager cli"
+license = "Apache-2.0"
+documentation = "https://docs.rs/simple_host_networks_manager_cli"
+repository = "https://github.com/dottgonzo/simple-host-networks-manager"
+
 
 
 [dependencies]
