@@ -1,6 +1,6 @@
 [package]
 name = "simple_host_networks_manager_lib"
-version = "0.0.3"
+version = "0.0.4"
 edition = "2021"
 
 authors = ["Dario Caruso"]
