@@ -42,7 +42,7 @@ pub async fn get_all_networking_phisical_interfaces(
 
             if !address.is_empty() && orig.gateway.is_some() {
                 let from_vec_to_ipv4net: default_net::ip::Ipv4Net = address[0];
-                if !from_vec_to_ipv4net.addr.to_string().ends_with(".1") {
+                if !from_vec_to_ipv4net.addr.to_string().contains(".1/") {
                     let is_connected = true;
 
                     let mut network_type: Option<structs::NetworkType> = None;
