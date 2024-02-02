@@ -6,3 +6,5 @@ members = [
     "simple_host_networks_manager_cli"
 ]
 
+resolver = "2"
+
