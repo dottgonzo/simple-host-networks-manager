@@ -25,7 +25,7 @@ pub async fn get_all_networking_phisical_interfaces(
     for interface in i {
         let orig = interface.clone();
         let address: Vec<default_net::ip::Ipv4Net> = interface.ipv4;
-        if !orig.is_loopback() && !orig.is_tun() {
+        if !orig.is_loopback() && !orig.is_tun() && !orig.name.starts_with("br") {
             let mut is_default_route = false;
 
             let routes = get_routes().await;
