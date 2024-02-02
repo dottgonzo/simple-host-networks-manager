@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests;
 use default_net;
-use wifiscanner;
+use tokio_wifiscanner;
 
 pub async fn connect(force: Option<bool>, interface: String) -> anyhow::Result<()> {
     // check ping
@@ -13,6 +13,7 @@ pub async fn connect(force: Option<bool>, interface: String) -> anyhow::Result<(
     }
     Ok(())
 }
+
 pub async fn get_all_networking_phisical_interfaces() -> anyhow::Result<Vec<default_net::Interface>>
 {
     let i = default_net::get_interfaces();
@@ -64,9 +65,10 @@ pub async fn switch_route() -> anyhow::Result<()> {
 pub async fn get_eth_connections() -> anyhow::Result<()> {
     Ok(())
 }
-pub async fn get_wifi_networks() -> anyhow::Result<Vec<wifiscanner::Wifi>> {
-    let mut wifi_networks: Vec<wifiscanner::Wifi> = Vec::new();
-    let wifi = wifiscanner::scan();
+pub async fn get_wifi_networks() -> anyhow::Result<Vec<tokio_wifiscanner::Wifi>> {
+    let mut wifi_networks: Vec<tokio_wifiscanner::Wifi> = Vec::new();
+    
+    let wifi = tokio_wifiscanner::scan().await;
 
     if let Ok(wifi) = wifi {
         if wifi.len() == 0 {

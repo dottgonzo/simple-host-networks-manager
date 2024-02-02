@@ -35,7 +35,7 @@ async fn main(){
         return
     }
 
-    let connection = simple_host_networks_manager_lib::check_connection().await;
+    let connection = simple_host_networks_manager_lib::get_wifi_networks().await;
 
     if connection.is_ok() {
         println!("connected");
