@@ -1,0 +1,8 @@
+
+
+[workspace]
+members = [
+    "simple_host_networks_manager_lib",
+    "simple_host_networks_manager_cli"
+]
+

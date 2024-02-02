@@ -1,0 +1,10 @@
+[package]
+name = "simple_host_networks_manager_cli"
+version = "0.0.0"
+edition = "2021"
+
+
+
+[dependencies]
+simple_host_networks_manager_lib = { path = "../simple_host_networks_manager_lib" }
+tokio = { version = "1.33.0", default-features = false, features = ["macros","rt-multi-thread"] }
