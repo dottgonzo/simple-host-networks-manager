@@ -36,4 +36,18 @@ use crate::*;
 
         
     }
+    #[tokio::test]
+
+    async fn get_routes_networks_test() {
+
+        let r=get_routes().await;
+
+
+        assert!(r.is_ok());
+
+        println!("{:?}",r);
+
+
+        
+    }
 }

@@ -35,11 +35,9 @@ async fn main(){
         return
     }
 
-    let connection = simple_host_networks_manager_lib::get_wifi_networks().await;
+    let _ = simple_host_networks_manager_lib::get_wifi_networks().await;
+    let interfaces = simple_host_networks_manager_lib::get_all_networking_phisical_interfaces().await;
 
-    if connection.is_ok() {
-        println!("connected");
-    } else {
-        println!("not connected");
-    }
+    println!("{:?}", interfaces);
+
 }
