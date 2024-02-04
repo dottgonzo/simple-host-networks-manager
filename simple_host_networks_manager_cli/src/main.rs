@@ -130,37 +130,48 @@ async fn main() {
                             return println!("profile_name is required");
                         }
 
-                        let phisical =
-                            simple_host_networks_manager_lib::get_all_networking_phisical_interfaces().await;
+                        // TODO: NOT CHECK IF DEVICE EXISTS!?
+                        // let phisical =
+                        //     simple_host_networks_manager_lib::get_all_networking_phisical_interfaces().await;
 
-                        let mut interface_requested: Option<NetworkInterface> = None;
+                        // let mut interface_requested: Option<NetworkInterface> = None;
 
-                        if let Ok(phisical) = phisical {
-                            for network_interface in phisical {
-                                if &network_interface.name == interface_name_string {
-                                    interface_requested = Some(network_interface);
-                                    break;
-                                }
-                            }
-                        }
-                        if interface_requested.is_none() {
-                            return println!("network_interface not found");
-                        }
-                        let interface_requested = interface_requested.unwrap();
+                        // if let Ok(phisical) = phisical {
+                        //     for network_interface in phisical {
+                        //         if &network_interface.name == interface_name_string {
+                        //             interface_requested = Some(network_interface);
+                        //             break;
+                        //         }
+                        //     }
+                        // }
+                        // if interface_requested.is_none() {
+                        //     return println!("network_interface not found");
+                        // }
+                        // let interface_requested = interface_requested.unwrap();
 
                         let wifi_ssid = matches.get_one::<String>("wifi_ssid").cloned();
                         let wifi_password = matches.get_one::<String>("wifi_password").cloned();
                         let apn_name = matches.get_one::<String>("apn_name").cloned();
 
+                        let mut network_type =
+                            simple_host_networks_manager_lib::structs::NetworkType::Ethernet;
+
+                        if wifi_ssid.is_some() {
+                            network_type =
+                                simple_host_networks_manager_lib::structs::NetworkType::Wifi;
+                        } else if apn_name.is_some() {
+                            network_type =
+                                simple_host_networks_manager_lib::structs::NetworkType::Cellular;
+                        }
+
                         let newprofile =
                             simple_host_networks_manager_lib::structs::NetworkConnectionProfile {
-                                interface: interface_requested.name,
+                                interface: interface_name_string.to_owned(),
                                 ipv4: None,
                                 gateway: None,
                                 priority: None,
                                 name: profile_name_string.to_owned(),
-                                network_type:
-                                    simple_host_networks_manager_lib::structs::NetworkType::Ethernet,
+                                network_type,
                                 wifi_connection_ssid: wifi_ssid,
                                 wifi_connection_password: wifi_password,
                                 ppp_apn_connection_name: apn_name,

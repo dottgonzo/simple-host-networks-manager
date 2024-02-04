@@ -329,6 +329,9 @@ pub async fn set_connection_profile(
 ) -> anyhow::Result<()> {
     match profile.network_type {
         structs::NetworkType::Ethernet => {
+            if !profile.interface.starts_with("eth") && !profile.interface.starts_with("enp") {
+                return Err(anyhow::anyhow!("interface name must start with eth or enp"));
+            }
             if profile.wifi_connection_ssid.is_some() || profile.wifi_connection_password.is_some()
             {
                 return Err(anyhow::anyhow!("wifi_connection_ssid and wifi_connection_password are not required for ethernet"));
@@ -340,6 +343,11 @@ pub async fn set_connection_profile(
             }
         }
         structs::NetworkType::Wifi => {
+            if !profile.interface.starts_with("wlan") && !profile.interface.starts_with("wlp") {
+                return Err(anyhow::anyhow!(
+                    "interface name must start with wlan or wlp"
+                ));
+            }
             if profile.wifi_connection_ssid.is_none() {
                 return Err(anyhow::anyhow!("wifi_connection_ssid is required"));
             }
@@ -356,6 +364,11 @@ pub async fn set_connection_profile(
             }
         }
         structs::NetworkType::Cellular => {
+            if !profile.interface.starts_with("ppp") && !profile.interface.starts_with("wwan") {
+                return Err(anyhow::anyhow!(
+                    "interface name must start with ppp or wwan"
+                ));
+            }
             if profile.ppp_apn_connection_name.is_none() {
                 // TODO: check if apn exists in local database
                 return Err(anyhow::anyhow!("ppp_apn_connection_name is required"));
