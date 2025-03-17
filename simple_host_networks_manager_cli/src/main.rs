@@ -4,7 +4,7 @@ use simple_host_networks_manager_lib::{self, structs::NetworkInterface};
 #[tokio::main]
 async fn main() {
     let matches = command!()
-        .about("update main embedded app")
+        .about("network management")
         .version(env!("CARGO_PKG_VERSION"))
         .arg(
             Arg::new("debug")
@@ -25,14 +25,14 @@ async fn main() {
                     .about("profile actions")
                     .arg(
                         Arg::new("profile_name")
-                            .short('p')
-                            .long("prfile_name")
+                            .short('n')
+                            .long("name")
                             .long_help("profile name")
                             .value_parser(value_parser!(String)),
                     )
                     .arg(
                         Arg::new("network_interface")
-                            .short('n')
+                            .short('i')
                             .long("network_interface")
                             .long_help("network interface")
                             .value_parser(value_parser!(String)),
@@ -69,22 +69,16 @@ async fn main() {
     match matches.subcommand() {
         Some(("connect", matches)) => {
             if let Some(interface) = matches.get_one::<String>("intrerface") {
-                let is_connected = simple_host_networks_manager_lib::connect(
-                    None,
-                    None,
-                    Some(interface.to_owned()),
-                    &None,
-                    &None,
-                )
-                .await;
+                let is_connected =
+                    simple_host_networks_manager_lib::connect(None, Some(interface.to_owned()))
+                        .await;
                 if is_connected.is_ok() {
                     println!("interface {:?} connected", interface);
                 } else {
                     println!("interface {:?} NOT connected", interface);
                 }
             } else {
-                let is_connected =
-                    simple_host_networks_manager_lib::connect(None, None, None, &None, &None).await;
+                let is_connected = simple_host_networks_manager_lib::connect(None, None).await;
                 if is_connected.is_ok() {
                     println!("connected");
                 } else {
@@ -185,10 +179,7 @@ async fn main() {
                             println!("profile added: {:?}", result);
                             _ = simple_host_networks_manager_lib::connect(
                                 None,
-                                None,
                                 Some(interface_name_string.to_owned()),
-                                &None,
-                                &None,
                             )
                             .await;
                         } else {

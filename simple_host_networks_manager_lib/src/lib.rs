@@ -3,116 +3,125 @@ mod tests;
 
 pub mod structs;
 use async_recursion::async_recursion;
-use default_net::gateway;
 use std::{
     fs,
-    net::Ipv4Addr,
-    os,
-    path::{self, Path, PathBuf},
+    path::{self, PathBuf},
     process::Command,
 };
+
+pub async fn connect_interface(
+    interface: structs::NetworkInterface,
+    disconnect_before: Option<bool>,
+) -> anyhow::Result<()> {
+    let profiles = get_connection_profiles(None).await?;
+
+    let profiles = profiles.clone();
+
+    if !profiles
+        .into_iter()
+        .any(|p: structs::NetworkConnectionProfile| p.interface == interface.name)
+    {
+        return Err(anyhow::anyhow!("no profile found for interface"));
+    }
+
+    if let Some(network_type) = interface.network_type {
+        if let Some(connected) = interface.is_connected {
+            if connected && disconnect_before.is_none() {
+                return Ok(());
+            } else if connected && disconnect_before.is_some() {
+                let nmcli = Command::new("nmcli")
+                    .args(["dev", "disconnect", &interface.name])
+                    .output();
+                if nmcli.is_err() {
+                    return Err(anyhow::anyhow!("failed to run nmcli"));
+                }
+            }
+        }
+        match network_type {
+            structs::NetworkType::Wifi => {
+                let mut wifi_is_connected = false;
+                let wifi_networks = get_wifi_networks().await?;
+                for wifi_network in &wifi_networks {
+                    if is_ssid_connected(&wifi_network.ssid) {
+                        wifi_is_connected = true;
+                        break;
+                    }
+                }
+
+                if wifi_is_connected && disconnect_before.is_none() {
+                    return Ok(());
+                }
+                let nmcli = Command::new("nmcli")
+                    .args(["dev", "wifi", "connect", &interface.name])
+                    .output();
+                if let Ok(nmcli) = nmcli {
+                    let output = String::from_utf8_lossy(&nmcli.stdout);
+                    println!("output: {:?}", output);
+                } else {
+                    return Err(anyhow::anyhow!("failed to run nmcli"));
+                }
+            }
+            structs::NetworkType::Ethernet => {
+                let nmcli = Command::new("nmcli")
+                    .args(["dev", "connect", &interface.name])
+                    .output();
+                if let Ok(nmcli) = nmcli {
+                    let output = String::from_utf8_lossy(&nmcli.stdout);
+                    println!("output: {:?}", output);
+                } else {
+                    return Err(anyhow::anyhow!("failed to run nmcli"));
+                }
+            }
+            structs::NetworkType::Cellular => {
+                let nmcli = Command::new("nmcli")
+                    .args(["dev", "connect", &interface.name])
+                    .output();
+                if let Ok(nmcli) = nmcli {
+                    let output = String::from_utf8_lossy(&nmcli.stdout);
+                    println!("output: {:?}", output);
+                } else {
+                    return Err(anyhow::anyhow!("failed to run nmcli"));
+                }
+            }
+            _ => {}
+        }
+        Ok(())
+    } else {
+        Err(anyhow::anyhow!("no network type found for interface"))
+    }
+}
 
 #[async_recursion]
 pub async fn connect(
     disconnect_before: Option<bool>,
-    multiple: Option<bool>,
     interface: Option<String>,
-    wifi_password: &Option<&str>,
-    apn_name: &Option<&str>,
 ) -> anyhow::Result<()> {
     // check ping
-    if multiple.is_none() {
-        let connection_status = check_connection().await;
-        if connection_status.is_ok() {
-            return Ok(());
-        }
-    }
+
+    // if interface.is_some() && disconnect_before.is_none() {
+    //         let connection_status = check_connection().await;
+    //         if connection_status.is_ok() {
+    //             return Ok(());
+    //         }
+    // }
 
     let phisycal_interfaces = get_all_networking_phisical_interfaces().await?;
-    let mut wifi_is_connected = false;
-    let wifi_networks = get_wifi_networks().await?;
-    let profiles = get_connection_profiles(None).await?;
-    for wifi_network in &wifi_networks {
-        if is_ssid_connected(&wifi_network.ssid) {
-            wifi_is_connected = true;
-            break;
-        }
-    }
-    for i in phisycal_interfaces {
-        let profiles = profiles.clone();
 
-        if !profiles
-            .into_iter()
-            .any(|p: structs::NetworkConnectionProfile| p.interface == i.name)
-        {
+    for i in phisycal_interfaces {
+        let name = i.name.clone();
+        if interface.is_some() && interface.as_ref().unwrap() != &name {
             continue;
         }
-        if let Some(interface) = &interface {
-            if &i.name != interface {
-                continue;
-            }
-        }
-        if let Some(network_type) = i.network_type {
-            if let Some(connected) = i.is_connected {
-                if connected && disconnect_before.is_none() {
-                    continue;
-                } else if connected && disconnect_before.is_some() {
-                    let nmcli = Command::new("nmcli")
-                        .args(["dev", "disconnect", &i.name])
-                        .output()
-                        .expect("failed to run nmcli");
-                }
-            }
-            match network_type {
-                structs::NetworkType::Wifi => {
-                    if wifi_is_connected && disconnect_before.is_none() {
-                        continue;
-                    }
-                    let nmcli = Command::new("nmcli")
-                        .args(["dev", "wifi", "connect", &i.name])
-                        .output()
-                        .expect("failed to run nmcli");
-                    let output = String::from_utf8_lossy(&nmcli.stdout);
-                    println!("output: {:?}", output);
-                }
-                structs::NetworkType::Ethernet => {
-                    let nmcli = Command::new("nmcli")
-                        .args(["dev", "connect", &i.name])
-                        .output()
-                        .expect("failed to run nmcli");
-
-                    let output = String::from_utf8_lossy(&nmcli.stdout);
-                    println!("output: {:?}", output);
-                }
-                structs::NetworkType::Cellular => {
-                    let nmcli = Command::new("nmcli")
-                        .args(["dev", "connect", &i.name])
-                        .output()
-                        .expect("failed to run nmcli");
-
-                    let output = String::from_utf8_lossy(&nmcli.stdout);
-                    println!("output: {:?}", output);
-                }
-                _ => {}
-            }
-        }
-        if multiple.is_none() {
-            let connection_status = check_connection().await;
-            if connection_status.is_ok() {
-                return Ok(());
-            }
+        let conn = connect_interface(i, disconnect_before).await;
+        if conn.is_err() {
+            println!("error connecting to interface: {:?}", name);
         }
     }
     let connection_status = check_connection().await;
     if connection_status.is_ok() {
         return Ok(());
-    } else if interface.is_none()
-        && connection_status.is_err()
-        && disconnect_before.is_none()
-        && wifi_password.is_none()
-        && apn_name.is_none()
-    {
-        return connect(Some(true), multiple, None, &None, &None).await;
+    } else if interface.is_none() && disconnect_before.is_none() {
+        return connect(Some(true), None).await;
     } else {
         return Err(anyhow::anyhow!("error connecting"));
     }
@@ -187,8 +196,11 @@ pub async fn get_all_networking_phisical_interfaces(
 
                 if orig.gateway.is_some() {
                     is_connected = Some(true);
-                    if let Ok(rr) = &routes {
-                        for route in rr {
+                    let routes = &routes;
+
+                    if routes.is_ok() {
+                        let routes = routes.as_ref().unwrap();
+                        for route in routes {
                             if let Some(route_gateway) = route.gateway {
                                 if route_gateway.to_string()
                                     == orig.clone().gateway.unwrap().ip_addr.to_string()
